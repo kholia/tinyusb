@@ -84,7 +84,6 @@ CFLAGS += \
   -Wfatal-errors \
   -Wdouble-promotion \
   -Wstrict-prototypes \
-  -Wstrict-overflow \
   -Werror-implicit-function-declaration \
   -Wfloat-equal \
   -Wundef \

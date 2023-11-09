@@ -49,7 +49,6 @@ function(add_tinyusb TARGET)
       -Wfatal-errors
       -Wdouble-promotion
       -Wstrict-prototypes
-      -Wstrict-overflow
       -Werror-implicit-function-declaration
       -Wfloat-equal
       -Wundef

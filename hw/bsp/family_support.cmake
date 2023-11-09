@@ -53,7 +53,6 @@ set(WARNING_FLAGS_GNU
   -Wfatal-errors
   -Wdouble-promotion
   -Wstrict-prototypes
-  -Wstrict-overflow
   -Werror-implicit-function-declaration
   -Wfloat-equal
   -Wundef
@@ -352,7 +351,7 @@ function(family_add_default_example_warnings TARGET)
 
     # GCC 8
     if (CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 8.0)
-      target_compile_options(${TARGET} PUBLIC -Wcast-function-type -Wstrict-overflow)
+      target_compile_options(${TARGET} PUBLIC -Wcast-function-type)
     endif()
 
     # GCC 6
