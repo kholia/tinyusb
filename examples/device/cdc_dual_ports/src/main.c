@@ -23,6 +23,11 @@
  *
  */
 
+// cd examples/device/cdc_dual_ports
+// export PICO_SDK_PATH=$HOME/repos/pico-sdk
+// cmake -DFAMILY=rp2040 pico .
+// make BOARD=raspberry_pi_pico all
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -31,8 +36,19 @@
 #include "bsp/board_api.h"
 #include "tusb.h"
 
+#include "pico/stdlib.h"
+#include "hardware/gpio.h"
+
 //------------- prototypes -------------//
 static void cdc_task(void);
+
+#define PTT 2 // GP2
+
+#ifndef PICO_DEFAULT_LED_PIN
+#define PICO_DEFAULT_LED_PIN 3 // GP3
+#endif
+
+const uint LED_PIN = PICO_DEFAULT_LED_PIN;
 
 /*------------- MAIN -------------*/
 int main(void)
@@ -41,6 +57,14 @@ int main(void)
 
   // init device stack on configured roothub port
   tud_init(BOARD_TUD_RHPORT);
+
+
+  // configure gpio
+  gpio_init(PTT);
+  gpio_set_dir(PTT, GPIO_OUT);
+  gpio_put(PTT, 0);
+  gpio_init(LED_PIN);
+  gpio_set_dir(LED_PIN, GPIO_OUT);
 
   if (board_init_after_tusb) {
     board_init_after_tusb();
@@ -55,7 +79,7 @@ int main(void)
 
 // echo to either Serial0 or Serial1
 // with Serial0 as all lower case, Serial1 as all upper case
-static void echo_serial_port(uint8_t itf, uint8_t buf[], uint32_t count)
+static void __attribute__ ((unused)) echo_serial_port(uint8_t itf, uint8_t buf[], uint32_t count)
 {
   uint8_t const case_diff = 'a' - 'A';
 
@@ -95,11 +119,36 @@ static void cdc_task(void)
         uint8_t buf[64];
 
         uint32_t count = tud_cdc_n_read(itf, buf, sizeof(buf));
+	(void) count;
 
         // echo back to both serial ports
-        echo_serial_port(0, buf, count);
-        echo_serial_port(1, buf, count);
+        // echo_serial_port(0, buf, count);
+        // echo_serial_port(1, buf, count);
       }
     }
+  }
+}
+
+static bool is_on = false;
+
+// Invoked when cdc when line state changed e.g connected/disconnected
+void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts)
+{
+  (void) itf;
+  (void) rts;
+
+  if (rts) {
+    gpio_put(LED_PIN, 1);
+    gpio_put(PTT, 1);
+    is_on = true;
+  } else {
+    if (is_on) {
+      gpio_put(PTT, 0);
+      gpio_put(LED_PIN, 0);
+      is_on = false;
+    }
+  }
+
+  if (dtr) {
   }
 }
